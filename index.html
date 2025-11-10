@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Khám Phá Bản Thân</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    /* 🎬 Video nền động */
+    #bgVideo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.6);
+    }
+
+    h1 {
+      font-size: 2em;
+      font-weight: bold;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+      animation: fadeIn 1s ease;
+    }
+
+    button, .option-btn {
+      background: rgba(0, 153, 255, 0.9);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 14px 28px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: 0.3s;
+      animation: fadeIn 1s ease;
+    }
+
+    button:hover, .option-btn:hover {
+      background: rgba(0,128,255,1);
+      transform: scale(1.05);
+    }
+
+    textarea {
+      width: 80%;
+      max-width: 400px;
+      border-radius: 10px;
+      border: none;
+      padding: 10px;
+      font-size: 1em;
+      resize: none;
+      margin: 15px auto;
+      display: block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      animation: fadeIn 1s ease;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-right: 10px;
+    }
+
+    .error {
+      color: #ffddcc;
+      text-shadow: 1px 1px 3px black;
+      font-weight: bold;
+      animation: shake 0.3s;
+    }
+
+    .result-img {
+      width: 200px;
+      border-radius: 15px;
+      margin: 15px 0;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      animation: fadeIn 1s ease;
+    }
+
+    /* 🎵 Nút bật tiếng */
+    #unmuteBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-size: 14px;
+      z-index: 1000;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* 📱 Responsive cho điện thoại */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.3em;
+      }
+      button, .option-btn {
+        width: 90%;
+        font-size: 0.9em;
+      }
+      textarea {
+        width: 90%;
+        font-size: 0.9em;
+      }
+      .result-img {
+        width: 140px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🎥 Video nền -->
+  <video autoplay muted loop playsinline id="bgVideo">
+    <source src="videos/background.mp4" type="video/mp4">
+  </video>
+
+  <!-- 🔊 Nút bật tiếng -->
+  <button id="unmuteBtn">🔊 Bật tiếng</button>
+
+  <!-- Giao diện chính -->
+  <div id="app">
+    <h1>🌟 Hãy cùng nhau khám phá bản thân thôi nào! 🌟</h1>
+    <button onclick="startQuiz()">Khám phá ngay 🚀</button>
+  </div>
+
+  <!-- 🔊 Âm thanh click -->
+  <audio id="clickSound" src="sounds/click.mp3" preload="auto"></audio>
+
+  <script>
+    const video = document.getElementById("bgVideo");
+    const unmuteBtn = document.getElementById("unmuteBtn");
+    const clickSound = document.getElementById("clickSound");
+
+    // 🎵 Cho phép phát tiếng sau khi người dùng nhấn nút
+    unmuteBtn.addEventListener("click", () => {
+      video.muted = false;
+      video.play();
+      unmuteBtn.style.display = "none";
+    });
+
+    // 🎵 Kích hoạt âm thanh click
+    function playClickSound() {
+      clickSound.currentTime = 0;
+      clickSound.play().catch(() => {});
+    }
+    document.addEventListener("click", playClickSound);
+
+    // Cho phép âm thanh hoạt động trên mobile (cần một chạm đầu tiên)
+    document.addEventListener("touchstart", () => {
+      clickSound.play().then(() => {
+        clickSound.pause();
+        clickSound.currentTime = 0;
+      }).catch(()=>{});
+    }, { once: true });
+
+    // -------------------- APP CHÍNH --------------------
+    const app = document.getElementById("app");
+
+    const questions = [
+      { text: "Khi lớp có một dự án 'khó nhằn', bạn sẽ xung phong làm phần nào?",
+        options: ["Lên kế hoạch, phân công, 'chốt deal' với cô giáo.",
+                  "Ngồi làm slide, thiết kế poster, chỉnh video.",
+                  "Lắp ráp mô hình, lo phần kỹ thuật, máy móc."],
+        group: ["Lãnh Đạo", "Sáng Tạo", "Kỹ Thuật"] },
+      { text: "Nếu máy tính/điện thoại đột nhiên 'dở chứng', phản ứng đầu tiên của bạn là:",
+        options: ["Mở máy ra thử sửa.", "Tra Google để hiểu nguyên nhân.", "Gọi bạn mô tả 'bệnh' chi tiết."],
+        group: ["Kỹ Thuật", "Học Thuật", "Ngôn Ngữ"] },
+      { text: "Lớp tổ chức đi cắm trại, bạn sẽ là ai trong chuyến đi?",
+        options: ["Sếp tổng lo ngân sách, chốt địa điểm.", "Mama tổng quản lo đồ ăn và tinh thần.", "Cây văn nghệ tổ chức trò chơi."],
+        group: ["Lãnh Đạo", "Xã Hội", "Sáng Tạo"] },
+      { text: "Cách học nào khiến bạn thấy 'vào' nhất?",
+        options: ["Thảo luận, thuyết trình, tranh luận.", "Đọc tài liệu, làm việc với con số.", "Hoạt động xã hội, giúp đỡ người khác."],
+        group: ["Ngôn Ngữ", "Học Thuật", "Xã Hội"] },
+      { text: "Bạn bè thường tìm đến bạn khi nào?",
+        options: ["Cần người lắng nghe, cho lời khuyên.", "Nhờ làm MC, viết content, dịch tiếng Anh.", "Nhờ giải bài toán logic, thuật toán."],
+        group: ["Xã Hội", "Ngôn Ngữ", "Học Thuật"] },
+      { text: "Việc 'người lớn' nào nghe có vẻ thú vị nhất?",
+        options: ["Tự tay sửa đồ điện tử.", "Lập kế hoạch kinh doanh.", "Vẽ, phối màu cho căn phòng."],
+        group: ["Kỹ Thuật", "Lãnh Đạo", "Sáng Tạo"] },
+      { text: "Một ngày đẹp trời, bạn sẽ:",
+        options: ["Cày phim khoa học, giải đề logic.", "Đi tình nguyện hoặc tổ chức workshop.", "Vẽ, viết truyện, thu âm."],
+        group: ["Học Thuật", "Xã Hội", "Sáng Tạo"] },
+      { text: "Bạn cảm thấy 'oai' nhất khi...",
+        options: ["Điều phối sự kiện lớn của trường.", "Tự tay sửa đồ phức tạp.", "Tranh luận thắng ai đó."],
+        group: ["Lãnh Đạo", "Kỹ Thuật", "Ngôn Ngữ"] },
+      { text: "Khi xem phim, bạn chú ý nhất đến:",
+        options: ["Lời thoại và cách nhân vật thuyết phục.", "Màu sắc, góc quay, trang phục.", "Mối quan hệ và tâm lý nhân vật."],
+        group: ["Ngôn Ngữ", "Sáng Tạo", "Xã Hội"] },
+      { text: "Bạn được giao nhiệm vụ 'nâng cấp' phòng học. Bạn sẽ:",
+        options: ["Vẽ tường graffiti, sắp xếp lại màu sắc.", "Tính toán ngân sách, phân công.", "Sửa quạt, đóng bàn."],
+        group: ["Sáng Tạo", "Lãnh Đạo", "Kỹ Thuật"] },
+    ];
+
+    const qualities = [
+      "Tôi có tinh thần trách nhiệm cao, luôn hoàn thành việc được giao.",
+      "Tôi trung thực, đáng tin cậy và tuân thủ nguyên tắc.",
+      "Tôi kiên trì, không bỏ cuộc dù gặp khó khăn.",
+      "Tôi linh hoạt, sáng tạo và thích học hỏi cái mới.",
+      "Tôi làm việc có kế hoạch, đúng giờ, và biết quản lý thời gian.",
+      "Tôi tự tin, dám thể hiện bản thân và bảo vệ quan điểm."
+    ];
+
+    let currentQuestion = 0;
+    let answers = [];
+    let selectedOption = null;
+    let selectedQualities = [];
+
+    function startQuiz() {
+      currentQuestion = 0;
+      answers = [];
+      selectedQualities = [];
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      app.innerHTML = `
+        <h1>${q.text}</h1>
+        ${q.options.map((opt, i) => `<button class="option-btn" onclick="selectOption(${i})">${opt}</button>`).join("")}
+      `;
+    }
+
+    function selectOption(index) {
+      selectedOption = index;
+      askReason();
+    }
+
+    function askReason() {
+      app.innerHTML = `
+        <h1>Vì sao bạn chọn câu trả lời đó?</h1>
+        <textarea id="reason" placeholder="Nhập câu trả lời của bạn..."></textarea>
+        <div id="error" class="error"></div>
+        <button onclick="submitAnswer()">👉 Tiếp tục</button>
+      `;
+    }
+
+    function submitAnswer() {
+      const reason = document.getElementById("reason").value.trim();
+      const error = document.getElementById("error");
+      if (reason === "") {
+        error.innerHTML = "Cưng ơi, cưng quên điền rồi nè!";
+        return;
+      }
+
+      answers.push({
+        question: questions[currentQuestion].text,
+        answer: questions[currentQuestion].options[selectedOption],
+        group: questions[currentQuestion].group[selectedOption],
+        reason
+      });
+
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        showQuestion();
+      } else {
+        showQualities();
+      }
+    }
+
+    function showQualities() {
+      app.innerHTML = `
+        <h1>Tuyệt vời! Giờ hãy chọn các phẩm chất mà bạn thấy đúng nhất với mình nhé:</h1>
+        ${qualities.map((q, i) => `
+          <div>
+            <label>
+              <input type="checkbox" value="${q}" />
+              ${q}
+            </label>
+          </div>
+        `).join("")}
+        <button onclick="submitQualities()">👉 Tiếp tục</button>
+      `;
+    }
+
+    function submitQualities() {
+      selectedQualities = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      if (selectedQualities.length === 0) {
+        app.innerHTML += `<div class="error">🥴 Hãy chọn ít nhất một phẩm chất!</div>`;
+        return;
+      }
+      app.innerHTML = `
+        <h1>Tại sao bạn nghĩ mình có những phẩm chất đó?</h1>
+        <textarea id="qualityReason" placeholder="Chia sẻ suy nghĩ của bạn..."></textarea>
+        <div id="error" class="error"></div>
+        <button onclick="showResult()">👉 Xem kết quả</button>
+      `;
+    }
+
+    function showResult() {
+      const reason = document.getElementById("qualityReason").value.trim();
+      if (reason === "") {
+        document.getElementById("error").innerHTML = "Hãy nhập lý do trước khi xem kết quả!";
+        return;
+      }
+
+      const counts = {};
+      for (const ans of answers) counts[ans.group] = (counts[ans.group] || 0) + 1;
+      const bestGroup = Object.keys(counts).reduce((a,b) => counts[a] > counts[b] ? a : b);
+
+      const careers = {
+        "Học Thuật": { 
+          name: "Nhà nghiên cứu 🧠, Phân tích dữ liệu 📊, Lập trình viên 👨‍💻,...", 
+          img: ["images/scientist.png", "images/researcher.png","images/Software developer.png" ]},
+        "Ngôn Ngữ": { 
+          name: "Nhà báo 📰, Biên tập viên ✍️, Marketing 📈, Ngoại ngữ 🔤,...", 
+          img: ["images/writer.png", "images/journalist.png", "images/Marketing.png", "images/Language.png"] },
+        "Xã Hội": { 
+          name: "Nhà tâm lý học 💬, Giáo viên 👩‍🏫, Bác sĩ 🩺,...", 
+          img: ["images/Psychologist.png", "images/teacher.png","images/doctor.png" ] },
+        "Sáng Tạo": { 
+          name: "Thiết kế đồ họa 🎨, Âm nhạc 🎤, Thời trang 👗,...", 
+          img: ["images/artist.png", "images/Music.png", "images/fashion.png" ]},
+        "Kỹ Thuật": { 
+          name: "Kỹ sư ⚙️, Lập trình viên 👨‍💻, Cơ khí 🛠️, Xây dựng 🏗️,...", 
+          img: ["images/engineer.png","images/Software developer.png", "images/Mechanical.png", "images/Construction.png"] },
+        "Lãnh Đạo": { 
+          name: "Luật ⚖️, Doanh nhân 💼, Chính trị học 🏛️, Quản lí công 📋,...", 
+          img: ["images/Lawyer.png", "images/Entrepreneur.png", "images/Political.png", "images/Administrator.png" ]}
+      };
+
+      const result = careers[bestGroup];
+      const allImages = result.img.map(src => `<img src="${src}" class="result-img" alt="${bestGroup}" />`).join("");
+
+      app.innerHTML = `
+        <h1>Bạn có năng lực nổi trội về <span style="color:#ffeb3b;">${bestGroup}</span> 💪</h1>
+        <p>Ngành nghề phù hợp: <b>${result.name}</b></p>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:15px;">
+          ${allImages}
+        </div>
+        <button onclick="restart()">🔁 Làm lại</button>
+      `;
+    }
+
+    function restart() {
+      startQuiz();
+    }
+  </script>
+</body>
+</html>
