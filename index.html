@@ -19,7 +19,6 @@
       overflow: hidden;
     }
 
-    /* 🎬 Video nền động */
     #bgVideo {
       position: fixed;
       top: 50%;
@@ -94,7 +93,6 @@
       animation: fadeIn 1s ease;
     }
 
-    /* 🎵 Nút bật tiếng */
     #unmuteBtn {
       position: fixed;
       bottom: 20px;
@@ -120,7 +118,6 @@
       75% { transform: translateX(5px); }
     }
 
-    /* 📱 Responsive cho điện thoại */
     @media (max-width: 600px) {
       h1 { font-size: 1.3em; }
       button, .option-btn { width: 90%; font-size: 0.9em; }
@@ -131,24 +128,18 @@
 </head>
 
 <body>
-  <!-- 🎥 Video nền -->
   <video autoplay muted loop playsinline id="bgVideo">
     <source src="videos/background.mp4" type="video/mp4">
   </video>
 
-  <!-- 🎵 Nhạc nền riêng -->
   <audio id="bgMusic" src="sounds/background.mp3" loop preload="auto"></audio>
-
-  <!-- 🔊 Nút bật tiếng -->
   <button id="unmuteBtn">🔊 Bật tiếng</button>
 
-  <!-- Giao diện chính -->
   <div id="app">
     <h1>🌟 Hãy cùng nhau khám phá bản thân thôi nào! 🌟</h1>
     <button onclick="startQuiz()">Khám phá ngay 🚀</button>
   </div>
 
-  <!-- 🔊 Âm thanh click -->
   <audio id="clickSound" src="sounds/click.mp3" preload="auto"></audio>
 
   <script>
@@ -156,21 +147,18 @@
     const unmuteBtn = document.getElementById("unmuteBtn");
     const clickSound = document.getElementById("clickSound");
 
-    // ✅ Khi bấm nút bật tiếng
     unmuteBtn.addEventListener("click", () => {
       bgMusic.volume = 0.5;
       bgMusic.play().catch(() => {});
       unmuteBtn.style.display = "none";
     });
 
-    // 🎵 Âm thanh click
     function playClickSound() {
       clickSound.currentTime = 0;
       clickSound.play().catch(() => {});
     }
     document.addEventListener("click", playClickSound);
 
-    // Cho phép âm thanh hoạt động trên iPhone (chạm lần đầu)
     document.addEventListener("touchstart", () => {
       bgMusic.play().then(() => {
         bgMusic.pause();
@@ -178,7 +166,6 @@
       }).catch(()=>{});
     }, { once: true });
 
-    // -------------------- APP CHÍNH --------------------
     const app = document.getElementById("app");
 
     const questions = [
@@ -247,31 +234,14 @@
 
     function selectOption(index) {
       selectedOption = index;
-      askReason();
-    }
-
-    function askReason() {
-      app.innerHTML = `
-        <h1>Vì sao bạn chọn câu trả lời đó?</h1>
-        <textarea id="reason" placeholder="Nhập câu trả lời của bạn..."></textarea>
-        <div id="error" class="error"></div>
-        <button onclick="submitAnswer()">👉 Tiếp tục</button>
-      `;
+      submitAnswer(); // Không còn hỏi lý do giữa chừng
     }
 
     function submitAnswer() {
-      const reason = document.getElementById("reason").value.trim();
-      const error = document.getElementById("error");
-      if (reason === "") {
-        error.innerHTML = "Cưng ơi, cưng quên điền rồi nè!";
-        return;
-      }
-
       answers.push({
         question: questions[currentQuestion].text,
         answer: questions[currentQuestion].options[selectedOption],
-        group: questions[currentQuestion].group[selectedOption],
-        reason
+        group: questions[currentQuestion].group[selectedOption]
       });
 
       if (currentQuestion < questions.length - 1) {
